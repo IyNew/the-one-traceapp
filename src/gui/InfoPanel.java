@@ -21,7 +21,8 @@ import core.Message;
 /**
  * Information panel that shows data of selected messages and nodes.
  */
-@SuppressWarnings("serial")
+// @SuppressWarnings("serial")
+@SuppressWarnings("unchecked")
 public class InfoPanel extends JPanel implements ActionListener{
 	private JComboBox msgChooser;
 	private JLabel info;
