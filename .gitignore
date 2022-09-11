@@ -15,3 +15,5 @@ doc/package-list
 .project
 /target/
 .settings/org.eclipse.*
+reports/Test-5-nodes/Test-5-nodes_MessageStatsReport.txt
+reports/Test-5-nodes/Test-100-nodes-with-TA_MessageStatsReport.txt
