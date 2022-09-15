@@ -3,12 +3,12 @@
 #
 
 ## Scenario settings
-Scenario.name = Test-100-nodes-with-TA
+Scenario.name = Test-50-nodes-with-TA
 Scenario.simulateConnections = true
 Scenario.updateInterval = 1.0
 # 43200s == 12h
 Scenario.endTime = 1000
-Scenario.nrofHostGroups = 1
+Scenario.nrofHostGroups = 2
 
 
 ## Interface-specific settings:
@@ -59,11 +59,22 @@ TraceApp.type = TraceApplication
 Group.nrofApplications = 1
 Group.application1 = TraceApp
 # Walking speeds
-Group.speed = 0.5, 1.5
+# Group.speed = 0.5, 1.5
 # Message TTL of 300 minutes (5 hours)
 Group.msgTtl = 300
-Group.nrofHosts = 100
-Group.groupID = N
+# Group.nrofHosts = 100
+# Group.groupID = N
+
+
+# Group of TA
+Group1.groupID = TA
+Group1.speed = 0, 0
+Group1.nrofHosts = 1
+
+# Group of others
+Group2.groupID = U
+Group2.speed = 0.5, 1.5
+Group2.nrofHosts = 100
 
 
 ## Movement model settings
@@ -93,7 +104,7 @@ Events1.prefix = M
 ## Reports - all report names have to be valid report classes
 # how many reports to load
 Report.nrofReports = 1
-Report.reportDir = reports/Test-5-nodes
+Report.reportDir = reports/Trace
 # Report classes to load
 Report.report1 = MessageStatsReport
 
