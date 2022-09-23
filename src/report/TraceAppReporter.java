@@ -4,7 +4,7 @@ import applications.TraceApplication;
 import core.Application;
 import core.ApplicationListener;
 import core.DTNHost;
-import java.util.ArrayList;
+import java.util.*;
 
 
 /*
@@ -12,12 +12,12 @@ import java.util.ArrayList;
  */
 
 public class TraceAppReporter extends Report implements ApplicationListener {
-    private int dataSent = 0, dataReceived = 0;
-    private int logSent = 0, logReceived = 0;
-    private ArrayList<String> logSentList = new ArrayList<String>();
-    private ArrayList<String> logReceivedList = new ArrayList<String>();
-    private ArrayList<String> dataSentList = new ArrayList<String>();
-    private ArrayList<String> dataReceivedList = new ArrayList<String>();  
+    // private int dataSent = 0, dataReceived = 0;
+    // private int logSent = 0, logReceived = 0;
+    private Set<String> logSentList = new HashSet<>();
+    private Set<String> logReceivedList = new HashSet<>();
+    private Set<String> dataSentList = new HashSet<>();
+    private Set<String> dataReceivedList = new HashSet<>();  
 
     public void gotEvent(String event, Object params, Application app, DTNHost host) {
         // Check that the event is sent by correct application type
@@ -25,19 +25,19 @@ public class TraceAppReporter extends Report implements ApplicationListener {
 
         // Increment the counters based on the event type
         if (event.equalsIgnoreCase("GotData")) {
-            dataReceived++;
+            // dataReceived++;
             dataReceivedList.add((String) params);
         }
         if (event.equalsIgnoreCase("SentLog")) {
-            logSent++;
+            // logSent++;
             logSentList.add((String) params);
         }
         if (event.equalsIgnoreCase("GotLog")) {
-            logReceived++;
+            // logReceived++;
             logReceivedList.add((String) params);
         }
         if (event.equalsIgnoreCase("SentData")) {
-            dataSent++;
+            // dataSent++;
             dataSentList.add((String) params);
         }
     }
@@ -45,6 +45,14 @@ public class TraceAppReporter extends Report implements ApplicationListener {
     @Override
     public void done() {
         write("Trace stats for scenario " + getScenarioName() + "\nsim_time: " + format(getSimTime()));
+        double dataProb = 0; // data probability
+        dataProb = (1.0 * dataReceivedList.size()) / dataSentList.size();
+        write("dataSent: " + dataSentList.size());
+        write("dataReceived: " + dataReceivedList.size());
+        write("dataDeliveryProb: " + dataProb);
+        write("logSent: " + logSentList.size());
+        write("logReceived: " + logReceivedList.size());
+
         // double dataProb = 0; // data probability
         // double logProb = 0; // log probability
         // double successProb = 0; // success probability
@@ -63,25 +71,25 @@ public class TraceAppReporter extends Report implements ApplicationListener {
         // write("Log sent: " + this.logSent + " received: " + this.logReceived + " probability: " + logProb);
         // write("Success probability: " + successProb);
 
-        write("Data sent: " + this.dataSent + " received: " + this.dataReceived);
-        write("Log sent: " + this.logSent + " received: " + this.logReceived);
+        // write("Data sent: " + this.dataSent + " received: " + this.dataReceived);
+        // write("Log sent: " + this.logSent + " received: " + this.logReceived);
         // write a few lines of code to print out the dataSentList, dataReceivedList, logSentList, and logReceivedList with blank lines between each list
-        write("Data sent list: ");
+        write("Data sent list: " + this.dataSentList.size() + " recorded");
         for (String data : dataSentList) {
             write(data);
         }
         write("");
-        write("Data received list: ");
+        write("Data received list: " + this.dataReceivedList.size() + " recorded");
         for (String data : dataReceivedList) {
             write(data);
         }
         write("");
-        write("Log sent list: ");
+        write("Log sent list: " + this.logSentList.size() + " recorded");
         for (String data : logSentList) {
             write(data);
         }
         write("");
-        write("Log received list: ");
+        write("Log received list: " + this.logReceivedList.size() + " recorded");
         for (String data : logReceivedList) {
             write(data);
         }

@@ -3,12 +3,16 @@
 #
 
 ## Scenario settings
-Scenario.name = Test-50-nodes-with-TA
+Scenario.name = Test-500node-in5000-no-report
 Scenario.simulateConnections = true
 Scenario.updateInterval = 1.0
 # 43200s == 12h
-Scenario.endTime = 1000
+Scenario.endTime = 5000
 Scenario.nrofHostGroups = 2
+
+# All nodes have TraceApp
+TraceApp.type = TraceApplication
+# TraceApp.istracing = true
 
 
 ## Interface-specific settings:
@@ -54,8 +58,6 @@ Group.bufferSize = 5M
 # All nodes have the bluetooth interface
 Group.nrofInterfaces = 1
 Group.interface1 = btInterface
-# All nodes have TraceApp
-TraceApp.type = TraceApplication
 Group.nrofApplications = 1
 Group.application1 = TraceApp
 # Walking speeds
@@ -74,7 +76,7 @@ Group1.nrofHosts = 1
 # Group of others
 Group2.groupID = U
 Group2.speed = 0.5, 1.5
-Group2.nrofHosts = 100
+Group2.nrofHosts = 500
 
 
 ## Movement model settings
@@ -87,26 +89,27 @@ MovementModel.worldSize = 450, 340
 
 ## Message creation parameters
 # How many event generators
-Events.nrof = 1
+# Events.nrof = 1
 # Class of the first event generator
-Events1.class = MessageEventGenerator
+# Events1.class = MessageEventGenerator
 # (following settings are specific for the MessageEventGenerator class)
 # Creation interval in seconds (one new message every 25 to 35 seconds)
-Events1.interval = 25,35
+# Events1.interval = 25,35
 # Message sizes (500kB - 1MB)
-Events1.size = 500k,1M
+# Events1.size = 500k,1M
 # range of message source/destination addresses
-Events1.hosts = 0,4
+# Events1.hosts = 0,4
 # Message ID prefix
-Events1.prefix = M
+# Events1.prefix = M
 
 
 ## Reports - all report names have to be valid report classes
 # how many reports to load
-Report.nrofReports = 1
+Report.nrofReports = 2
 Report.reportDir = reports/Trace
 # Report classes to load
-Report.report1 = MessageStatsReport
+Report.report1 = TraceAppReporter
+Report.report2 = MessageStatsReport
 
 
 ## Optimization settings -- these affect the speed of the simulation

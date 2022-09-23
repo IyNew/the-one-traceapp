@@ -18,20 +18,34 @@ import core.Debug;
 
 public class TraceApplication extends Application {
 
+    public static final String TRACE_ISTRACING = "istracing";
     /** Application ID */
     public static final String APP_ID = "my.TraceApplication";
 
     // Private vars
-    private boolean isTracing = false;
+    private boolean isTracing = true;
     private double lastShare = 0;
     private double interval = 50;
     private int seed = 0;
+    private Random rng;
     private int shareSize = 100;
     private int shareSizeWithTrace = 1000;
+    private int dataSize;
+
 
     // Constructor with settings
     public TraceApplication(Settings s) {
         // super(s);
+        if (s.contains(TRACE_ISTRACING)) {
+            this.isTracing = s.getBoolean(TRACE_ISTRACING);
+            if (isTracing) {
+                this.dataSize = shareSizeWithTrace;
+            }
+            else {
+                this.dataSize = shareSize;
+            }
+        }
+        rng = new Random(this.seed);
         super.setAppID(APP_ID);
     }
 
@@ -43,18 +57,22 @@ public class TraceApplication extends Application {
     public Message handle(Message msg, DTNHost host) {
         String type = (String) msg.getProperty("type");
 
-        // if logSent arrived at host 0, record them
-        if () {
-            
+        // at host 0, collect all logs
+        if (type == "Log" && host.getAddress() == 0) {
+            super.sendEventToListeners("GotLog", (String) msg.getId(), host);
         }
         if (type == "Data" && msg.getTo() == host) {
             // send event to the reporter
-            super.sendEventToListeners(event: "GotData", params: msg.getId(), host);
-            // send a logSent to host 0 when a message is received
-            String msgId = "logSent" + SimClock.getIntTime() + "-" + host.getAddress();
-            Message log = new Message(host, SimScenario.getInstance().getHosts().get(0), "log", 50);
-            log.addProperty("type", "logReceived");
-            super.sendEventToListeners(event: "logReceived", params: , host);
+            super.sendEventToListeners("GotData", msg.getId(), host);
+            if (isTracing) {
+                String logReceivedId = "logReceived-" + SimClock.getIntTime() + "-" + msg.getId();
+                Message log = new Message(host, SimScenario.getInstance().getHosts().get(0), logReceivedId, 50);
+                log.addProperty("type", "Log");
+                log.setAppID(APP_ID);
+                host.createNewMessage(log);
+                super.sendEventToListeners("SentLog", logReceivedId, host);
+            }
+            
         }
         
         return msg;
@@ -67,11 +85,24 @@ public class TraceApplication extends Application {
         double curTime = SimClock.getTime();
         if (curTime - this.lastShare >= this.interval) {
             // send a message
-            Message m = new Message(host, randomHost(), "trace" + SimClock.getIntTime() + "-" + host.getAddress(), this.shareSize);
+            DTNHost dest = randomHost();
+            String msgId = "Data-" + SimClock.getIntTime() + "-" + host.getAddress() + "-" + dest.getAddress();
+            Message m = new Message(host, dest, msgId, this.dataSize);
             m.addProperty("type", "Data");
             m.setAppID(APP_ID);
             host.createNewMessage(m);
             this.lastShare = curTime;
+            super.sendEventToListeners("SentData", msgId, host);
+
+            if (this.isTracing) {
+                // send a log message to host 0
+                String logSentId = "logSent-" + SimClock.getIntTime() + "-" + msgId;
+                Message logSent = new Message(host, SimScenario.getInstance().getHosts().get(0), logSentId, 50);
+                logSent.addProperty("type", "Log");
+                logSent.setAppID(APP_ID);
+                host.createNewMessage(logSent);
+                super.sendEventToListeners("SentLog", logSentId, host);
+            }
         }
         
         // // at time 10, host 1 sends a message to host 50
