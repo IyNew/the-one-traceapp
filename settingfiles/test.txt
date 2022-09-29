@@ -7,15 +7,16 @@ Scenario.name = Testbase
 Scenario.simulateConnections = true
 Scenario.updateInterval = 1.0
 # 43200s == 12h
-Scenario.endTime = 2000
+Scenario.endTime = Tendtime
 Scenario.nrofHostGroups = 2
 
 # All nodes have TraceApp
 TraceApp.type = TraceApplication
-TraceApp.istracing = false
-TraceApp.numofnodes = 500
-TraceApp.interval = 100
-TraceApp.pace = 0.1
+TraceApp.istracing = Tistracing
+TraceApp.numofnodes = Tnumofnodes
+TraceApp.interval = Tinterval
+TraceApp.pace = Tpace
+TraceApp.numofTA = TnumofTA
 
 
 
@@ -62,13 +63,13 @@ Group.msgTtl = 300
 
 # Group of TA
 Group1.groupID = TA
-Group1.speed = 0, 0
-Group1.nrofHosts = 1
+Group1.speed = 0.5, 1.5
+Group1.nrofHosts = TnumofTA
 
 # Group of others
 Group2.groupID = U
 Group2.speed = 0.5, 1.5
-Group2.nrofHosts = 500
+Group2.nrofHosts = Tnumofnodes
 
 
 ## Movement model settings
@@ -98,7 +99,7 @@ MovementModel.worldSize = 450, 340
 ## Reports - all report names have to be valid report classes
 # how many reports to load
 Report.nrofReports = 2
-Report.reportDir = reports/Trace
+Report.reportDir = ../reports
 # Report classes to load
 Report.report1 = TraceAppReporter
 Report.report2 = MessageStatsReport

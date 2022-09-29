@@ -3,7 +3,7 @@ targetdir=target
 if [ ! -d "$targetdir" ]; then mkdir $targetdir; fi
 
 # original compile command
-javac -sourcepath src -d $targetdir -extdirs lib/ src/core/*.java src/movement/*.java src/report/*.java src/routing/*.java src/gui/*.java src/input/*.java src/applications/*.java src/interfaces/*.java
+javac -Xlint:unchecked -sourcepath src -d $targetdir -extdirs lib/ src/core/*.java src/movement/*.java src/report/*.java src/routing/*.java src/gui/*.java src/input/*.java src/applications/*.java src/interfaces/*.java
 
 
 # java -Xlint:unchecked src/gui/*.java src/input/*.java src/applications/*.java src/interfaces/*.java

@@ -3,11 +3,11 @@
 #
 
 ## Scenario settings
-Scenario.name = Test-500node-in5000-no-report
+Scenario.name = TestFeature
 Scenario.simulateConnections = true
 Scenario.updateInterval = 1.0
 # 43200s == 12h
-Scenario.endTime = 5000
+Scenario.endTime = 500
 Scenario.nrofHostGroups = 2
 
 # All nodes have TraceApp
@@ -76,7 +76,7 @@ Group1.nrofHosts = 1
 # Group of others
 Group2.groupID = U
 Group2.speed = 0.5, 1.5
-Group2.nrofHosts = 500
+Group2.nrofHosts = 200
 
 
 ## Movement model settings
@@ -106,7 +106,7 @@ MovementModel.worldSize = 450, 340
 ## Reports - all report names have to be valid report classes
 # how many reports to load
 Report.nrofReports = 2
-Report.reportDir = reports/Trace
+Report.reportDir = ../reports
 # Report classes to load
 Report.report1 = TraceAppReporter
 Report.report2 = MessageStatsReport
