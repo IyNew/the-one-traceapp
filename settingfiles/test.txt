@@ -17,6 +17,7 @@ TraceApp.numofnodes = Tnumofnodes
 TraceApp.interval = Tinterval
 TraceApp.pace = Tpace
 TraceApp.numofTA = TnumofTA
+TraceApp.isreshare = Tisreshare
 
 
 

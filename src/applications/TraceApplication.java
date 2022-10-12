@@ -83,6 +83,7 @@ public class TraceApplication extends Application {
         this.interval = a.interval();
         this.sendPace = a.sendPace();
         this.numTA = a.numTA();
+        this.isReshare = a.isReshare();
         this.rng = new Random(this.seed);
     }
 
@@ -93,7 +94,16 @@ public class TraceApplication extends Application {
         // at host 0, collect all logs
         if (type == "Log" && host.getAddress() < this.numTA) {
             super.sendEventToListeners("GotLog", (String) msg.getId(), host);
+            // drop the message
+            // host.deleteMessage(msg.getId(), false);
         }
+        if (type == "probLog" && host.getAddress() < this.numTA) {
+            super.sendEventToListeners("GotProbLog", (String) msg.getId(), host);
+            // drop the message
+            // host.deleteMessage(msg.getId(), false);
+        }
+
+        // when a data is received
         if (type == "Data" && msg.getTo() == host) {
             // send event to the reporter
             super.sendEventToListeners("GotData", msg.getId(), host);
@@ -120,7 +130,7 @@ public class TraceApplication extends Application {
                 host.createNewMessage(reshareData);
                 super.sendEventToListeners("SentData", reshareDataId, host);
                 
-                if (isTracing == 2) {
+                if (isTracing >= 2) {
                     String logSentId = "logSent-" + SimClock.getIntTime() + "-" + reshareDataId;
                     Message logSentReshare = new Message(host, randomTAHost(), logSentId, logSize);
                     logSentReshare.addProperty("type", "Log");
@@ -130,6 +140,32 @@ public class TraceApplication extends Application {
                 }
             }
             
+        }
+
+        if (type == "Data" && msg.getTo() != host && this.isTracing == 3 ) {
+            // 
+            int hostAddr = host.getAddress();
+            if (probReportSampler(hostAddr)) {
+                // get the probability of the delivery
+                MessageRouter rt = host.getRouter();
+                Class<?> prophetClass = rt.getClass();
+                // System.out.println("Class: " + prophetClass);
+                try{
+                    Method md = prophetClass.getMethod("getPredFor", DTNHost.class);
+                    double pred = (double) md.invoke(rt, msg.getTo());
+                    // System.out.println("Pred to " + msg.getTo().getAddress() + " with pred: " +
+                    // pred);
+                    String probReportID = msg.getId() +  "-host" + hostAddr + "-probReport-" + String.valueOf(pred);
+                    Message probReport = new Message(host, randomTAHost(), probReportID, logSize);
+                    probReport.addProperty("type", "probLog");
+                    probReport.setAppID(APP_ID);
+                    host.createNewMessage(probReport);
+                    super.sendEventToListeners("SentProbLog", probReportID, host);
+                }
+                catch (Exception e) {
+                    System.out.println("Error: " + e);
+                }
+            }
         }
         // print current preds for the target host
         // use reflection to get the private field preds
@@ -161,7 +197,7 @@ public class TraceApplication extends Application {
         if (host.getAddress() != 0) {
             double curTime = SimClock.getTime();
             if (curTime - this.lastShare >= this.interval) {
-                if (rollDice() == false) {
+                if (paceSampler() == false) {
                     this.lastShare = curTime;
                     return ;
                 }
@@ -176,7 +212,7 @@ public class TraceApplication extends Application {
                 this.lastShare = curTime;
                 super.sendEventToListeners("SentData", msgId, host);
 
-                if (this.isTracing == 2) {
+                if (this.isTracing >= 2) {
                     // send a log message to host 0
                     String logSentId = "logSent-" + SimClock.getIntTime() + "-" + msgId;
                     Message logSent = new Message(host, randomTAHost(), logSentId,
@@ -212,10 +248,21 @@ public class TraceApplication extends Application {
     }
 
     // roll a dice to decide whether to send a message
-    private boolean rollDice() {
+    private boolean paceSampler() {
         double r = new Random().nextDouble();
         // System.out.println("r: " + r);
         if (r < this.sendPace) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    // roll a dice to decide wether to report prob
+    private boolean probReportSampler(int hostAddr) {
+        // 30% chance to report
+        if (hostAddr % 3 == 0) {
             return true;
         }
         else {

@@ -17,7 +17,9 @@ public class TraceAppReporter extends Report implements ApplicationListener {
     private Set<String> logSentList = new HashSet<>();
     private Set<String> logReceivedList = new HashSet<>();
     private Set<String> dataSentList = new HashSet<>();
-    private Set<String> dataReceivedList = new HashSet<>();  
+    private Set<String> dataReceivedList = new HashSet<>(); 
+    private Set<String> SentProbLogList = new HashSet<>();
+    private Set<String> ReceivedProbLogList = new HashSet<>(); 
 
     public void gotEvent(String event, Object params, Application app, DTNHost host) {
         // Check that the event is sent by correct application type
@@ -40,6 +42,12 @@ public class TraceAppReporter extends Report implements ApplicationListener {
             // logReceived++;
             logReceivedList.add((String) params);
         }
+        if (event.equalsIgnoreCase("SentProbLog")) {
+            SentProbLogList.add((String) params);
+        }
+        if (event.equalsIgnoreCase("GotProbLog")) {
+            ReceivedProbLogList.add((String) params);
+        }
     }
 
     @Override
@@ -52,6 +60,8 @@ public class TraceAppReporter extends Report implements ApplicationListener {
         write("dataDeliveryProb: " + dataProb);
         write("logSent: " + logSentList.size());
         write("logReceived: " + logReceivedList.size());
+        write("probLogSent: " + SentProbLogList.size());
+        write("probLogReceived: " + ReceivedProbLogList.size());
 
 
         write("Data sent list: " + this.dataSentList.size() + " recorded");
@@ -71,6 +81,11 @@ public class TraceAppReporter extends Report implements ApplicationListener {
         write("");
         write("Log received list: " + this.logReceivedList.size() + " recorded");
         for (String data : logReceivedList) {
+            write(data);
+        }
+        write("");
+        write("ReceivedProbLogList: " + this.ReceivedProbLogList.size() + " recorded");
+        for (String data : ReceivedProbLogList) {
             write(data);
         }
         super.done();
