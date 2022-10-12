@@ -2,13 +2,13 @@ settingpath=./settingfiles
 # pace=0.2
 # interval=100
 # numofnodes=500
-endtime=5000
+endtime=1000
 # istracing=false
 # numofTA=1
 isreshare=false
 interval=50
 
-for pace in 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+for pace in 0.1 
 do
     for interval in 50 
     do

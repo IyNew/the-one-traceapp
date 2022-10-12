@@ -49,7 +49,7 @@ public class MessageDelayReport extends Report implements MessageListener {
 
 	public void messageTransferred(Message m, DTNHost from, DTNHost to,
 			boolean firstDelivery) {
-		if (firstDelivery && !isWarmupID(m.getId())) {
+		if (firstDelivery && !isWarmupID(m.getId()) && m.getProperty("type") == "Data") {
 			this.delays.add(getSimTime() - m.getCreationTime());
 		}
 
@@ -62,6 +62,7 @@ public class MessageDelayReport extends Report implements MessageListener {
 			super.done();
 			return;
 		}
+		write(delays.size() + " delays collected.");
 		double cumProb = 0; // cumulative probability
 
 		java.util.Collections.sort(delays);
