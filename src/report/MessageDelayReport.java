@@ -43,7 +43,10 @@ public class MessageDelayReport extends Report implements MessageListener {
 			addWarmupID(m.getId());
 		}
 		else {
-			this.nrofCreated++;
+			if (m.getProperty("type") == "Data") {
+				this.nrofCreated++;
+			}
+			// this.nrofCreated++;
 		}
 	}
 

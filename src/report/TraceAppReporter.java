@@ -54,20 +54,25 @@ public class TraceAppReporter extends Report implements ApplicationListener {
     public void done() {
         write("Trace stats for scenario " + getScenarioName() + "\nsim_time: " + format(getSimTime()));
         double dataProb = 0; // data probability
+        double logProb = 0; // log probability
         dataProb = (1.0 * dataReceivedList.size()) / dataSentList.size();
+        if (logSentList.size() != 0) {
+            logProb = (1.0 * logReceivedList.size()) / logSentList.size();
+        }
         write("dataSent: " + dataSentList.size());
         write("dataReceived: " + dataReceivedList.size());
         write("dataDeliveryProb: " + dataProb);
         write("logSent: " + logSentList.size());
         write("logReceived: " + logReceivedList.size());
+        write("logDeliveryProb: " + (1.0 * logReceivedList.size()) / logSentList.size());
         write("probLogSent: " + SentProbLogList.size());
         write("probLogReceived: " + ReceivedProbLogList.size());
 
 
-        write("Data sent list: " + this.dataSentList.size() + " recorded");
-        for (String data : dataSentList) {
-            write(data);
-        }
+        // write("Data sent list: " + this.dataSentList.size() + " recorded");
+        // for (String data : dataSentList) {
+        //     write(data);
+        // }
         write("");
         write("Data received list: " + this.dataReceivedList.size() + " recorded");
         for (String data : dataReceivedList) {

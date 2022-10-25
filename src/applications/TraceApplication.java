@@ -35,7 +35,7 @@ public class TraceApplication extends Application {
     private int seed = 0;
     private int numNodes = 100;
     private Random rng;
-    private int shareSize = 100;
+    private int shareSize = 1000;
     private int shareSizeWithTrace = 1000;
     private int logSize = 50;
     private int dataSize;

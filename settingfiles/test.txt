@@ -32,7 +32,7 @@ TraceApp.isreshare = Tisreshare
 btInterface.type = SimpleBroadcastInterface
 # Transmit speed of 2 Mbps = 250kBps
 btInterface.transmitSpeed = 250k
-btInterface.transmitRange = 50
+btInterface.transmitRange = 10
 
 ## Group and movement model specific settings
 # pois: Points Of Interest indexes and probabilities (poiIndex1, poiProb1, poiIndex2, poiProb2, ... )
@@ -77,7 +77,7 @@ Group2.nrofHosts = Tnumofnodes
 # seed for movement models' pseudo random number generator (default = 0)
 MovementModel.rngSeed = 1
 # World's size for Movement Models without implicit size (width, height; meters)
-MovementModel.worldSize = 450, 340
+MovementModel.worldSize = 500, 500
 # How long time to move hosts in the world before real simulation
 
 
