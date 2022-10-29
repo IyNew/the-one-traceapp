@@ -7,12 +7,21 @@ Scenario.name = TestFeature
 Scenario.simulateConnections = true
 Scenario.updateInterval = 1.0
 # 43200s == 12h
-Scenario.endTime = 500
-Scenario.nrofHostGroups = 2
+Scenario.endTime = 1000
+Scenario.nrofHostGroups = 1
 
 # All nodes have TraceApp
 TraceApp.type = TraceApplication
 # TraceApp.istracing = true
+TraceApp.istracing = 3
+TraceApp.numofnodes = 150
+TraceApp.interval = 10
+TraceApp.pace = 1.0
+TraceApp.numofTA = 15
+TraceApp.isreshare = false
+TraceApp.isattack = true
+TraceApp.strongattackprob = 0.5
+TraceApp.weakattackprob = 0.2
 
 
 ## Interface-specific settings:
@@ -54,36 +63,36 @@ btInterface.transmitRange = 10
 Group.movementModel = RandomWaypoint
 Group.router = ProphetRouter
 ProphetRouter.secondsInTimeUnit = 30
-Group.bufferSize = 5M
+Group.bufferSize = 10M
 # All nodes have the bluetooth interface
 Group.nrofInterfaces = 1
 Group.interface1 = btInterface
 Group.nrofApplications = 1
 Group.application1 = TraceApp
 # Walking speeds
-# Group.speed = 0.5, 1.5
+Group.speed = 1.5, 1.5
 # Message TTL of 300 minutes (5 hours)
 Group.msgTtl = 300
-# Group.nrofHosts = 100
-# Group.groupID = N
+Group.nrofHosts = 165
+Group.groupID = N
 
 
 # Group of TA
-Group1.groupID = TA
-Group1.speed = 0, 0
-Group1.nrofHosts = 1
+# Group1.groupID = U
+# Group1.speed = 0.5, 1.5
+# Group1.nrofHosts = 20
 
 # Group of others
-Group2.groupID = U
-Group2.speed = 0.5, 1.5
-Group2.nrofHosts = 200
+# Group2.groupID = U
+# Group2.speed = 0.5, 1.5
+# Group2.nrofHosts = 100
 
 
 ## Movement model settings
 # seed for movement models' pseudo random number generator (default = 0)
 MovementModel.rngSeed = 1
 # World's size for Movement Models without implicit size (width, height; meters)
-MovementModel.worldSize = 450, 340
+MovementModel.worldSize = 500, 500
 # How long time to move hosts in the world before real simulation
 
 
@@ -105,12 +114,12 @@ MovementModel.worldSize = 450, 340
 
 ## Reports - all report names have to be valid report classes
 # how many reports to load
-Report.nrofReports = 2
+Report.nrofReports = 3
 Report.reportDir = ../reports
 # Report classes to load
 Report.report1 = TraceAppReporter
 Report.report2 = MessageStatsReport
-
+Report.report3 = BufferOccupancyReport
 
 ## Optimization settings -- these affect the speed of the simulation
 ## see World class for details.

@@ -25,6 +25,9 @@ public class TraceApplication extends Application {
     public static final String TRACE_PACE = "pace";
     public static final String TRACE_NUMBER_OF_TA = "numofTA";
     public static final String TRACE_RESHARE = "isreshare";
+    public static final String TRACE_ATTACK = "isattack";
+    public static final String TRACE_STRONG_ATTACK_PROB = "strongattackprob";
+    public static final String TRACE_WEAK_ATTACK_PROB = "weakattackprob";
     /** Application ID */
     public static final String APP_ID = "my.TraceApplication";
 
@@ -34,14 +37,18 @@ public class TraceApplication extends Application {
     private int interval = 100;
     private int seed = 0;
     private int numNodes = 100;
-    private Random rng;
-    private int shareSize = 1000;
-    private int shareSizeWithTrace = 1000;
+    // private Random rng;
+    private int shareSize = 1024;
+    private int shareSizeWithTrace = 1024;
     private int logSize = 50;
     private int dataSize;
     private double sendPace = 0.5;
     private int numTA = 10;
     private boolean isReshare = true;
+    private boolean isAttack = false;
+    private double strongAttackProb = 0.5;
+    private double weakAttackProb = 0;
+    private int edgeY =  250;
 
 
     // Constructor with settings
@@ -71,7 +78,17 @@ public class TraceApplication extends Application {
         if (s.contains(TRACE_RESHARE)) {
             this.isReshare = s.getBoolean(TRACE_RESHARE);
         }
-        rng = new Random(this.seed);
+        if (s.contains(TRACE_ATTACK)) {
+            this.isAttack = s.getBoolean(TRACE_ATTACK);
+        }
+        if (s.contains(TRACE_STRONG_ATTACK_PROB)) {
+            this.strongAttackProb = s.getDouble(TRACE_STRONG_ATTACK_PROB);
+        }
+        if (s.contains(TRACE_WEAK_ATTACK_PROB)) {
+            this.weakAttackProb = s.getDouble(TRACE_WEAK_ATTACK_PROB);
+        }
+        // rng = new Random(this.seed);
+    
         super.setAppID(APP_ID);
     }
     
@@ -84,29 +101,47 @@ public class TraceApplication extends Application {
         this.sendPace = a.sendPace();
         this.numTA = a.numTA();
         this.isReshare = a.isReshare();
-        this.rng = new Random(this.seed);
+        this.isAttack = a.isAttack();
+        this.strongAttackProb = a.strongAttackProb();
+        this.weakAttackProb = a.weakAttackProb();
+        // this.rng = new Random(this.seed);
     }
 
     @Override
     public Message handle(Message msg, DTNHost host) {
+     
+        
         String type = (String) msg.getProperty("type");
+        String zonePrefix = "";
+        if (this.isAttack) {
+            zonePrefix = (host.getLocation().getY() < this.edgeY) ? "H" : "L";
+        }
 
-        // at host 0, collect all logs
+        // handle attack if the host is no TA
+        if (this.isAttack && host.getAddress() >= this.numTA) {
+            // nodes in dangerous zone have strongAttackProb chance to drop the message
+            double dropProb = (host.getLocation().getY() < this.edgeY) ? this.strongAttackProb : this.weakAttackProb;
+            if (doIAttack(dropProb)) {
+                return null;
+            }
+        }
+
+        // at TA nodes, collect all logs
         if (type == "Log" && host.getAddress() < this.numTA) {
             super.sendEventToListeners("GotLog", (String) msg.getId(), host);
-            // drop the message
-            // host.deleteMessage(msg.getId(), false);
+            // return null to drop the message
+            return null;
         }
         if (type == "probLog" && host.getAddress() < this.numTA) {
             super.sendEventToListeners("GotProbLog", (String) msg.getId(), host);
-            // drop the message
-            // host.deleteMessage(msg.getId(), false);
+            System.out.println((String) msg.getId() +  "should be dropped by node " + host.getAddress());
+            return null;
         }
 
         // when a data is received
         if (type == "Data" && msg.getTo() == host) {
             // send event to the reporter
-            super.sendEventToListeners("GotData", msg.getId(), host);
+            super.sendEventToListeners("GotData", zonePrefix + msg.getId(), host);
             // todo: check hop count
             // print isTracing
             // System.out.println("isTracing: " + isTracing);
@@ -123,8 +158,8 @@ public class TraceApplication extends Application {
             // initiate reshare if needed
             if (isReshare) {
                 DTNHost reshareTo = randomHost();
-                String reshareDataId = msg.getId() + "-rs" + SimClock.getIntTime() + "-" + reshareTo.getAddress();
-                Message reshareData = new Message(host, reshareTo, reshareDataId, dataSize);
+                String reshareDataId = zonePrefix + msg.getId() + "-rs" + SimClock.getIntTime() + "-" + reshareTo.getAddress();
+                Message reshareData = new Message(host, reshareTo, reshareDataId, this.dataSize);
                 reshareData.addProperty("type", "Data");
                 reshareData.setAppID(APP_ID);
                 host.createNewMessage(reshareData);
@@ -193,8 +228,18 @@ public class TraceApplication extends Application {
     // update is called for every node at every time cycle
     @Override
     public void update(DTNHost host) {
-        // skip host 0
-        if (host.getAddress() != 0) {
+
+        // World temp = SimScenario.getInstance().getWorld();
+        // System.out.println("World: " + temp.getHosts().size());
+
+        String zonePrefix = "";
+        if (this.isAttack) {
+            zonePrefix = (host.getLocation().getY() < this.edgeY) ? "H" : "L";
+        }
+
+
+        // skip TA nodes
+        if (host.getAddress() >= this.numTA) {
             double curTime = SimClock.getTime();
             if (curTime - this.lastShare >= this.interval) {
                 if (paceSampler() == false) {
@@ -203,7 +248,7 @@ public class TraceApplication extends Application {
                 }
                 // send a message
                 DTNHost dest = randomHost();
-                String msgId = "Data-" + SimClock.getIntTime() + "-" + host.getAddress() + "-" + dest.getAddress();
+                String msgId = zonePrefix + "Data-" + SimClock.getIntTime() + "-" + host.getAddress() + "-" + dest.getAddress();
                 // System.out.println("dest" + dest.getAddress() + "host" + host.getAddress());
                 Message m = new Message(host, dest, msgId, this.dataSize);
                 m.addProperty("type", "Data");
@@ -214,7 +259,7 @@ public class TraceApplication extends Application {
 
                 if (this.isTracing >= 2) {
                     // send a log message to host 0
-                    String logSentId = "logSent-" + SimClock.getIntTime() + "-" + msgId;
+                    String logSentId = zonePrefix + "logSent-" + SimClock.getIntTime() + "-" + msgId;
                     Message logSent = new Message(host, randomTAHost(), logSentId,
                             logSize);
                     logSent.addProperty("type", "Log");
@@ -231,10 +276,10 @@ public class TraceApplication extends Application {
     // get a random host
     private DTNHost randomHost() {
         int destaddr = 0;
-        destaddr = numTA + new Random().nextInt(numNodes - 1);
-        // System.out.println("destaddr: " + destaddr);
+        destaddr = this.numTA + new Random().nextInt(this.numNodes);
+        // System.out.println(this.numNodes + this.numTA + " destaddr in randomHost: " + destaddr);
         World w = SimScenario.getInstance().getWorld();
-        // System.out.println("ok");
+        // System.out.println("ok");s
         return w.getNodeByAddress(destaddr);
     }
 
@@ -242,7 +287,9 @@ public class TraceApplication extends Application {
     // hosts 0 - numTA are TA hosts
     private DTNHost randomTAHost() {
         int destTAaddr = 0;
-        destTAaddr = new Random().nextInt(numTA);
+        
+        destTAaddr = new Random().nextInt(this.numTA);
+        // System.out.println(this.numTA + " destTAaddr in randomTAHost: " + destTAaddr);
         World w = SimScenario.getInstance().getWorld();
         return w.getNodeByAddress(destTAaddr);
     }
@@ -262,7 +309,17 @@ public class TraceApplication extends Application {
     // roll a dice to decide wether to report prob
     private boolean probReportSampler(int hostAddr) {
         // 30% chance to report
-        if (hostAddr % 3 == 0) {
+        if (hostAddr % 4 == 0) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    private boolean doIAttack(double attackProb) {
+        double r = new Random().nextDouble();
+        if (r < attackProb) {
             return true;
         }
         else {
@@ -299,6 +356,17 @@ public class TraceApplication extends Application {
         return this.isReshare;
     }
 
+    public boolean isAttack() {
+        return this.isAttack;
+    }
+
+    public double strongAttackProb() {
+        return this.strongAttackProb;
+    }
+    
+    public double weakAttackProb() {
+        return this.weakAttackProb;
+    }
     // public void setTracing(boolean isTracing) {
     //     this.isTracing = isTracing;
     // }

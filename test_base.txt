@@ -18,6 +18,9 @@ TraceApp.interval = Tinterval
 TraceApp.pace = Tpace
 TraceApp.numofTA = TnumofTA
 TraceApp.isreshare = Tisreshare
+TraceApp.isattack = Tisattack
+TraceApp.strongattackprob = Tstrongattackprob
+TraceApp.weakattackprob = Tweakattackprob
 
 
 
@@ -33,6 +36,7 @@ btInterface.type = SimpleBroadcastInterface
 # Transmit speed of 2 Mbps = 250kBps
 btInterface.transmitSpeed = 250k
 btInterface.transmitRange = 10
+# btInterface.transmitRange = 25
 
 ## Group and movement model specific settings
 # pois: Points Of Interest indexes and probabilities (poiIndex1, poiProb1, poiIndex2, poiProb2, ... )
@@ -48,7 +52,7 @@ btInterface.transmitRange = 10
 Group.movementModel = RandomWaypoint
 Group.router = ProphetRouter
 ProphetRouter.secondsInTimeUnit = 30
-Group.bufferSize = 5M
+Group.bufferSize = 10M
 # All nodes have the bluetooth interface
 Group.nrofInterfaces = 1
 Group.interface1 = btInterface
@@ -64,12 +68,12 @@ Group.msgTtl = 300
 
 # Group of TA
 Group1.groupID = TA
-Group1.speed = 0.5, 1.5
+Group1.speed = 1.5, 1.5
 Group1.nrofHosts = TnumofTA
 
 # Group of others
 Group2.groupID = U
-Group2.speed = 0.5, 1.5
+Group2.speed = 1.5, 1.5
 Group2.nrofHosts = Tnumofnodes
 
 
