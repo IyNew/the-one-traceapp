@@ -18,10 +18,11 @@ TraceApp.interval = Tinterval
 TraceApp.pace = Tpace
 TraceApp.numofTA = TnumofTA
 TraceApp.isreshare = Tisreshare
-TraceApp.isattack = Tisattack
-TraceApp.strongattackprob = Tstrongattackprob
-TraceApp.weakattackprob = Tweakattackprob
-
+TraceApp.isattack = false
+TraceApp.strongattackprob = 0
+TraceApp.weakattackprob = 0
+TraceApp.repeattimes = Trepeattimes
+TraceApp.reportprob = Treportprob
 
 
 ## Interface-specific settings:

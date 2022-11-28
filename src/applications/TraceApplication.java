@@ -28,6 +28,8 @@ public class TraceApplication extends Application {
     public static final String TRACE_ATTACK = "isattack";
     public static final String TRACE_STRONG_ATTACK_PROB = "strongattackprob";
     public static final String TRACE_WEAK_ATTACK_PROB = "weakattackprob";
+    public static final String TRACE_REPORT_PROB = "reportprob";
+    public static final String TRACE_REPEAT_TIME = "repeattimes";
     /** Application ID */
     public static final String APP_ID = "my.TraceApplication";
 
@@ -48,7 +50,12 @@ public class TraceApplication extends Application {
     private boolean isAttack = false;
     private double strongAttackProb = 0.5;
     private double weakAttackProb = 0;
+    private double reportProb = 0.3;
+    private int repeatTimes = 0;
     private int edgeY =  250;
+    private int repeatCount = -1;
+    private String repeatMessage = null;
+    private int lastRepeatTime = -1;
 
 
     // Constructor with settings
@@ -87,6 +94,13 @@ public class TraceApplication extends Application {
         if (s.contains(TRACE_WEAK_ATTACK_PROB)) {
             this.weakAttackProb = s.getDouble(TRACE_WEAK_ATTACK_PROB);
         }
+        if (s.contains(TRACE_REPORT_PROB)) {
+            this.reportProb = s.getDouble(TRACE_REPORT_PROB);
+        }
+        if (s.contains(TRACE_REPEAT_TIME)) {
+            this.repeatTimes = s.getInt(TRACE_REPEAT_TIME);
+            // this.repeatCount = this.repeatTimes;
+        }
         // rng = new Random(this.seed);
     
         super.setAppID(APP_ID);
@@ -104,11 +118,22 @@ public class TraceApplication extends Application {
         this.isAttack = a.isAttack();
         this.strongAttackProb = a.strongAttackProb();
         this.weakAttackProb = a.weakAttackProb();
+        this.reportProb = a.reportProb();
+        this.repeatTimes = a.repeatTimes();
+        this.repeatCount = a.repeatCount();
+        this.lastRepeatTime = a.lastRepeatTime();
         // this.rng = new Random(this.seed);
     }
 
     @Override
     public Message handle(Message msg, DTNHost host) {
+
+        // debug mode: print the message
+        // if (host.getAddress() > 140) {
+        //     System.out.println("Message received: " + msg.getId() + " from " + msg.getFrom() + " to " + msg.getTo()
+        //             + " at " + SimClock.getTime() + " with repeatCount " + msg.getProperty("repeatCount"));
+        // }
+        
      
         
         String type = (String) msg.getProperty("type");
@@ -134,14 +159,17 @@ public class TraceApplication extends Application {
         }
         if (type == "probLog" && host.getAddress() < this.numTA) {
             super.sendEventToListeners("GotProbLog", (String) msg.getId(), host);
-            System.out.println((String) msg.getId() +  "should be dropped by node " + host.getAddress());
+            // System.out.println((String) msg.getId() +  "should be dropped by node " + host.getAddress());
             return null;
         }
 
         // when a data is received
         if (type == "Data" && msg.getTo() == host) {
+            // print the data
+            System.out.println("mesage received by " + host.getAddress() + " at " + SimClock.getTime() + " is " + (String) msg.getId() + " with count " + (int) msg.getProperty("repeatCount"));
             // send event to the reporter
             super.sendEventToListeners("GotData", zonePrefix + msg.getId(), host);
+            super.sendEventToListeners("GotRepeatData", msg.getId() + "-" + msg.getProperty("repeatCount"), host);
             // todo: check hop count
             // print isTracing
             // System.out.println("isTracing: " + isTracing);
@@ -177,6 +205,7 @@ public class TraceApplication extends Application {
             
         }
 
+        // intermediate nodes report the routing information
         if (type == "Data" && msg.getTo() != host && this.isTracing == 3 ) {
             // 
             int hostAddr = host.getAddress();
@@ -229,6 +258,12 @@ public class TraceApplication extends Application {
     @Override
     public void update(DTNHost host) {
 
+        // debug mode: see only one node's behavior
+        if (host.getAddress() != 100) {
+            return;
+        }
+        
+
         // World temp = SimScenario.getInstance().getWorld();
         // System.out.println("World: " + temp.getHosts().size());
 
@@ -237,37 +272,95 @@ public class TraceApplication extends Application {
             zonePrefix = (host.getLocation().getY() < this.edgeY) ? "H" : "L";
         }
 
+        // add offset 3 in repeat interval to avoid edge cases
+        int repeatInterval = this.interval / (this.repeatTimes + 1 ) - 3;
 
         // skip TA nodes
         if (host.getAddress() >= this.numTA) {
-            double curTime = SimClock.getTime();
+            int curTime = SimClock.getIntTime();
+            // System.out.println("times: " + this.repeatCount);
+            // resend the data
+            // print repeatCount
+            // System.out.println("At host " + host.getAddress() + " repeatCount: " + this.repeatCount);
+
+            // a new data sharing is initiated
             if (curTime - this.lastShare >= this.interval) {
                 if (paceSampler() == false) {
                     this.lastShare = curTime;
                     return ;
                 }
-                // send a message
-                DTNHost dest = randomHost();
-                String msgId = zonePrefix + "Data-" + SimClock.getIntTime() + "-" + host.getAddress() + "-" + dest.getAddress();
-                // System.out.println("dest" + dest.getAddress() + "host" + host.getAddress());
-                Message m = new Message(host, dest, msgId, this.dataSize);
-                m.addProperty("type", "Data");
-                m.setAppID(APP_ID);
-                host.createNewMessage(m);
-                this.lastShare = curTime;
-                super.sendEventToListeners("SentData", msgId, host);
+                // send a new data
+                else {
+                    DTNHost dest = randomHost();
+                    this.repeatCount = 0;
+                    String msgId = zonePrefix + "Data-" + SimClock.getIntTime() + "-" + host.getAddress() + "-"
+                            + dest.getAddress();
+                    // System.out.println("dest" + dest.getAddress() + "host" + host.getAddress());
+                    if (this.repeatTimes > 0) {
+                        msgId = Integer.toString(this.repeatCount) + "-" + msgId;
+                    }
+                    Message m = new Message(host, dest, msgId, this.dataSize);
+                    m.addProperty("type", "Data");
+                    m.addProperty("repeatCount", this.repeatCount);
+                    m.setAppID(APP_ID);
+                    host.createNewMessage(m);
+                    this.lastShare = curTime;
+                    super.sendEventToListeners("SentData", msgId, host);
+                    this.repeatMessage = msgId;
+                    // print the repeatMessage
+                    System.out.println("Hello repeat message: " + this.repeatMessage);
+                    this.repeatCount += 1;
+                    this.lastRepeatTime = curTime;
+                    
 
-                if (this.isTracing >= 2) {
-                    // send a log message to host 0
-                    String logSentId = zonePrefix + "logSent-" + SimClock.getIntTime() + "-" + msgId;
-                    Message logSent = new Message(host, randomTAHost(), logSentId,
-                            logSize);
-                    logSent.addProperty("type", "Log");
-                    logSent.setAppID(APP_ID);
-                    host.createNewMessage(logSent);
-                    super.sendEventToListeners("SentLog", logSentId, host);
+                    if (this.isTracing >= 2) {
+                        // send a log message to host 0
+                        String logSentId = zonePrefix + "logSent-" + SimClock.getIntTime() + "-" + msgId;
+                        Message logSent = new Message(host, randomTAHost(), logSentId,
+                                logSize);
+                        logSent.addProperty("type", "Log");
+                        logSent.setAppID(APP_ID);
+                        host.createNewMessage(logSent);
+                        super.sendEventToListeners("SentLog", logSentId, host);
+                    }
                 }
+                
             }
+
+            // resend the data
+            /
+
+            // if (this.repeatTimes > 0) {
+            //     if (curTime - (this.repeatCount * repeatInterval) - this.lastShare > repeatInterval) {
+            //         // split the repeatMessage
+            //         System.out.println("repeat message: " + this.repeatMessage);
+            //         String[] repeatMessageSplit = this.repeatMessage.split("-");
+            //         // System.out.println("to: " + repeatMessageSplit[3]);
+            //         Message repMsg = new Message(host, SimScenario.getInstance().getWorld().getNodeByAddress(
+            //                 Integer.parseInt(repeatMessageSplit[3])),
+            //                 Integer.toString(this.repeatCount) + "-" + this.repeatMessage, this.dataSize);
+            //         repMsg.addProperty("type", "Data");
+            //         repMsg.addProperty("repeatCount", this.repeatCount);
+            //         repMsg.setAppID(APP_ID);
+            //         host.createNewMessage(repMsg);
+            //         super.sendEventToListeners("SentData", repMsg.getId(), host);
+            //         this.repeatCount += 1;
+            //         // System.out.println("Sent data: " + repMsg.getId() + " at time: " + curTime +
+            //         // " with repeat count: " + repMsg.getProperty("repeatCount"));
+            //         if (this.isTracing >= 2) {
+            //             String logSentId = zonePrefix + "logSent-" + SimClock.getIntTime() + "-"
+            //                     + repMsg.getId();
+            //             Message logSent = new Message(host, randomTAHost(), logSentId,
+            //                     logSize);
+            //             logSent.addProperty("type", "Log");
+            //             logSent.setAppID(APP_ID);
+            //             host.createNewMessage(logSent);
+            //             super.sendEventToListeners("SentLog", logSentId, host);
+            //         }
+            //     }
+            //     return;
+
+            // }
         
         }
         
@@ -309,13 +402,15 @@ public class TraceApplication extends Application {
     // roll a dice to decide wether to report prob
     private boolean probReportSampler(int hostAddr) {
         // 30% chance to report
-        if (hostAddr % 4 == 0) {
+        double r = new Random().nextDouble();
+        if (r < this.reportProb) {
             return true;
         }
         else {
             return false;
         }
     }
+
 
     private boolean doIAttack(double attackProb) {
         double r = new Random().nextDouble();
@@ -326,6 +421,7 @@ public class TraceApplication extends Application {
             return false;
         }
     }
+
 
     @Override
     public Application replicate() {
@@ -366,6 +462,22 @@ public class TraceApplication extends Application {
     
     public double weakAttackProb() {
         return this.weakAttackProb;
+    }
+
+    public double reportProb() {
+        return this.reportProb;
+    }
+
+    public int repeatTimes() {
+        return this.repeatTimes;
+    }
+
+    public int repeatCount() {
+        return this.repeatCount;
+    }
+
+    public int lastRepeatTime() {
+        return this.lastRepeatTime;
     }
     // public void setTracing(boolean isTracing) {
     //     this.isTracing = isTracing;

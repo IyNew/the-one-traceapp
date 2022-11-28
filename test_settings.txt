@@ -7,19 +7,20 @@ Scenario.name = TestFeature
 Scenario.simulateConnections = true
 Scenario.updateInterval = 1.0
 # 43200s == 12h
-Scenario.endTime = 1000
+Scenario.endTime = 10000
 Scenario.nrofHostGroups = 1
 
 # All nodes have TraceApp
 TraceApp.type = TraceApplication
 # TraceApp.istracing = true
-TraceApp.istracing = 3
+TraceApp.istracing = 0
 TraceApp.numofnodes = 150
-TraceApp.interval = 10
-TraceApp.pace = 1.0
+TraceApp.interval = 100
+TraceApp.pace = 0.1
 TraceApp.numofTA = 15
 TraceApp.isreshare = false
-TraceApp.isattack = true
+TraceApp.isattack = false
+TraceApp.repeattimes = 2
 TraceApp.strongattackprob = 0.5
 TraceApp.weakattackprob = 0.2
 
@@ -35,7 +36,7 @@ TraceApp.weakattackprob = 0.2
 btInterface.type = SimpleBroadcastInterface
 # Transmit speed of 2 Mbps = 250kBps
 btInterface.transmitSpeed = 250k
-btInterface.transmitRange = 10
+btInterface.transmitRange = 15
 
 
 ## Group-specific settings:
@@ -115,7 +116,7 @@ MovementModel.worldSize = 500, 500
 ## Reports - all report names have to be valid report classes
 # how many reports to load
 Report.nrofReports = 3
-Report.reportDir = ../reports
+Report.reportDir = ./reports
 # Report classes to load
 Report.report1 = TraceAppReporter
 Report.report2 = MessageStatsReport

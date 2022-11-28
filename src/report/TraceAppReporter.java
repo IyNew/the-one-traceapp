@@ -17,7 +17,9 @@ public class TraceAppReporter extends Report implements ApplicationListener {
     private Set<String> logSentList = new HashSet<>();
     private Set<String> logReceivedList = new HashSet<>();
     private Set<String> dataSentList = new HashSet<>();
+    private ArrayList<String> dataSentAllList = new ArrayList<String>();
     private Set<String> dataReceivedList = new HashSet<>(); 
+    private ArrayList<String> dataReceivedAllList = new ArrayList<String>();
     private Set<String> SentProbLogList = new HashSet<>();
     private Set<String> ReceivedProbLogList = new HashSet<>(); 
 
@@ -29,10 +31,14 @@ public class TraceAppReporter extends Report implements ApplicationListener {
         if (event.equalsIgnoreCase("SentData")) {
             // dataSent++;
             dataSentList.add((String) params);
+            dataSentAllList.add((String) params);
         }
         if (event.equalsIgnoreCase("GotData")) {
             // dataReceived++;
             dataReceivedList.add((String) params);
+        }
+        if (event.equalsIgnoreCase("GotRepeatData")) {
+            dataReceivedAllList.add((String) params);
         }
         if (event.equalsIgnoreCase("SentLog")) {
             // logSent++;
@@ -60,7 +66,9 @@ public class TraceAppReporter extends Report implements ApplicationListener {
             logProb = (1.0 * logReceivedList.size()) / logSentList.size();
         }
         write("dataSent: " + dataSentList.size());
+        write("dataSentAll: " + dataSentAllList.size());
         write("dataReceived: " + dataReceivedList.size());
+        write("dataReceivedAll: " + dataReceivedAllList.size());
         write("dataDeliveryProb: " + dataProb);
         write("logSent: " + logSentList.size());
         write("logReceived: " + logReceivedList.size());
@@ -69,13 +77,23 @@ public class TraceAppReporter extends Report implements ApplicationListener {
         write("probLogReceived: " + ReceivedProbLogList.size());
 
 
-        // write("Data sent list: " + this.dataSentList.size() + " recorded");
-        // for (String data : dataSentList) {
-        //     write(data);
-        // }
+        write("Data sent list: " + this.dataSentList.size() + " recorded");
+        for (String data : dataSentList) {
+            write(data);
+        }
+        write("");
+        write("Data sent all list: " + this.dataSentAllList.size() + " recorded");
+        for (String data : dataSentAllList) {
+            write(data);
+        }
         write("");
         write("Data received list: " + this.dataReceivedList.size() + " recorded");
         for (String data : dataReceivedList) {
+            write(data);
+        }
+        write("");
+        write("Data received all list: " + this.dataReceivedAllList.size() + " recorded");
+        for (String data : dataReceivedAllList) {
             write(data);
         }
         write("");

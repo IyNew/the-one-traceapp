@@ -10,7 +10,7 @@ endtime=20000
 # interval=50
 
 # for pace in 0.2 0.4 0.6 0.8 1.0
-for numofnodesTotal in 200 400 600 800 
+for numofnodesTotal in 200 300 400 500
 do
     for interval in 10
     do

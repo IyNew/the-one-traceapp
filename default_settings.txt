@@ -151,8 +151,8 @@ Report.warmup = 0
 # default directory of reports (can be overridden per Report with output setting)
 Report.reportDir = reports/
 # Report classes to load
-Report.report1 = MessageStatsReport
-Report.report2 = ContactTimesReport
+# Report.report1 = MessageStatsReport
+# Report.report2 = ContactTimesReport
 
 ## Default settings for some routers settings
 ProphetRouter.secondsInTimeUnit = 30
